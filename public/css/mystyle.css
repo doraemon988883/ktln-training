@@ -1,0 +1,31 @@
+/* Custom search */
+.form-inline {
+    display: inline-flex;
+    flex-grow: 2;
+    max-width: 400px;
+}
+
+.search-top:focus {
+    width: 335px;
+}
+.search-top:focus ~ .login-content {
+    display:none;
+}
+
+@media only screen and (max-width: 767px) {
+    .search-top {
+        width: 80px;
+    }
+    .form-inline {
+        max-width: 260px;
+    }
+    .search-top:focus {
+        width: 190px;
+    }
+}
+
+/* certificate dashboard */
+.certificate:hover {
+    text-decoration: none;
+    color: #57b846;
+}
