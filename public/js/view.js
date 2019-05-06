@@ -5,6 +5,7 @@ var roomInfo = {};
 var remoteVideo = document.getElementById('remote-video');
 var remoteSlide = document.getElementById('remote-slide');
 var remoteStream;
+var remoteSlideStream;
 
 // var uuidv4 = require('uuid/v4');
 // var io = require('socket.io-client')('http://localhost');
@@ -32,6 +33,14 @@ const connectType = {
     MIC:2
 }
 
+// remoteSlide.onplay = ()=>{
+//     console.log('RemoteSlide onplay is called')
+//     io.emit('RequestNewSlideFrame',{toSocket:findStreamer()});
+// }
+
+// remoteVideo.onpause = ()=>{
+//     console.log('Video onload is called')
+// }
 
 io.on('connect', function(data){
     room = prompt('Please enter your room ID:');
@@ -54,15 +63,63 @@ io.on('joined', function(data){
 
     var streamerSocketId = findStreamer();
 
-    // createConnectToHost(streamerSocketId);
 
     if(streamerSocketId!== null && streamerSocketId !== undefined){
         console.log('Found Host!')
-        createConnectToHost(streamerSocketId);
+        // createConnectToCAM(streamerSocketId);
+        // createConnectToSLIDE(streamerSocketId);
+
+        io.emit('requestMediaStage',{hostSocketId:streamerSocketId});
+
     }else{
         console.log('Host not found')
     }
 
+});
+io.on('receivedMediaStage', function(data){
+    if(data.stages.isCamReady){
+        createConnectToCAM(data.fromSocket);
+    } else {
+        console.log('CAM is not ready')
+    }
+    if(data.stages.isSlideReady){
+        createConnectToSLIDE(data.fromSocket);
+    }else {
+        console.log('SLIDE is not ready')
+    };
+});
+/**
+ * Kết nối lại với CAM và SLIDE của máy Host
+ */
+io.on('connectToHost',function(data){
+    console.log('Receive connectToHost cmd!!')
+    let foundCAM = false;
+    let foundSLIDE = false;
+    for(pcInfo in pcContainer){
+        if(pcInfo.conType == connectType.CAM){
+            foundCAM = true;
+            if(pcInfo.pc.connectionState == "disconnected" || pcInfo.pc.connectionState == "failed" || pcInfo.pc.connectionState == "closed"){
+                // createConnectToHost(data.hostSocketId);
+                createConnectToCAM(data.hostSocketId, pcInfo.pcId);
+            }else{
+                console.log('Connection stage of CAM is:',pcInfo.pc.connectionState);
+            }   
+        }else if(pcInfo.conType == connectType.SLIDE){
+            foundSLIDE = true;
+            if(pcInfo.pc.connectionState == "disconnected" || pcInfo.pc.connectionState == "failed" || pcInfo.pc.connectionState == "closed"){
+                // createConnectToHost(data.hostSocketId);
+                createConnectToSLIDE(data.hostSocketId, pcInfo.pcId);
+            }else{
+                console.log('Connection stage of SLIDE is:',pcInfo.pc.connectionState);
+            }
+        }
+    }
+    if(!foundCAM&&data.stages.isCamReady){
+        createConnectToCAM(data.hostSocketId);
+    }
+    if(!foundSLIDE&&data.stages.isSlideReady){
+        createConnectToSLIDE(data.hostSocketId);
+    }
 });
 /**
  * Tham số truyền vào hàm callback có dạng:
@@ -98,17 +155,26 @@ io.on('redirectCmd', function(data){
     self.location = data.toUrl;
 });
 
-io.on('receiveRoomInfo', function(data){
-    console.log("Receive new room info:", data)
+io.on('handleDisconectSocket', function(data){
+    console.log("Receive disconnected SocketID:", data);
+    delete pcContainer[data.disconnectedSocket]
+
 });
 
+
 /**
- * Tạo 2 RTCPeerConnection đến CAM và SLIDE của Host
- * @param toSocket
+ * Tạo RTCConnection đến CAM của Host
+ * @param {*} toSocket 
  */
-function createConnectToHost(toSocket){
+function createConnectToCAM(toSocket, pcId){
     
-    var camPC = createConnector(uuid(),toSocket, connectType.CAM);
+    let camPC;
+
+    if(pcId){
+        camPC=createConnector(pcId,toSocket, connectType.CAM);
+    }else{
+        camPC=createConnector(uuid(),toSocket, connectType.CAM);
+    }
 
     camPC.pc.createOffer(
         (des)=>{
@@ -118,8 +184,20 @@ function createConnectToHost(toSocket){
         handleCreateOfferError, 
         sdpConstraints
     );
+}
 
-    var slidePC = createConnector(uuid(),toSocket, connectType.SLIDE);
+/**
+ * Tạo RTCConnection đến SLIDE của Host
+ * @param {*} toSocket 
+ */
+function createConnectToSLIDE(toSocket, pcId){
+    let slidePC;
+
+    if(pcId){
+        slidePC= createConnector(pcId,toSocket, connectType.SLIDE);
+    }else {
+        slidePC = createConnector(uuid(),toSocket, connectType.SLIDE)
+    }
 
     slidePC.pc.createOffer(
         (des)=>{
@@ -193,6 +271,13 @@ function handleIceCandidate(event, toSocket, pcId) {
             candidate: event.candidate.candidate
         }, {pcId:pcId});
     } else {
+        if(pcContainer[pcId].conType == connectType.SLIDE){
+            console.log('Info of RemoteSlide:', remoteSlideStream);
+            remoteSlide.play();
+            io.emit('RequestNewSlideFrame',{toSocket:toSocket});
+        } else if(pcContainer[pcId].conType == connectType.CAM){
+            remoteVideo.play();
+        }
         console.log('End of candidates.');
     }
 }
@@ -207,12 +292,14 @@ function handleRemoteStreamAdded(event, pcId) {
         console.log('Event form CAM:', event, event.stream)
         remoteStream = event.stream;
         remoteVideo.srcObject = remoteStream;
+
     } else if(pcContainer[pcId].conType === connectType.SLIDE){
         // alert('Receive Slide stream from host!');
         console.log('Event form SLIDE:', event, event.stream)
         remoteSlideStream = event.stream;
         remoteSlide.srcObject = remoteSlideStream;
-        
+
+       
         if(remoteSlideStream.getTracks().size == 0) {
             console.log('First Tracks is 0');
             remoteSlideStream = event.stream.getTracks();

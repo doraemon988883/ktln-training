@@ -39,7 +39,8 @@ io.on('connect', function (data) {
 });
 
 io.on('joined', function (data) {
-    console.log('Joined room:', data)
+    console.log('Joined room:', data);
+    // prepareCAMDevice();
 });
 
 /**
@@ -63,6 +64,8 @@ io.on('receiveMsg', function (data) {
         var pcInfo = createConnector(uuid(), data.fromSocket, data.pcInfo.conType, data.pcInfo.pcId);
 
         if (data.pcInfo.conType == connectType.CAM) {
+
+            console.log('Prepare to addStream-cam:',localVideoStream)
 
             pcInfo.pc.addStream(localVideoStream);
 
@@ -118,6 +121,21 @@ io.on('receiveMsg', function (data) {
 
 });
 
+io.on('requestMediaStage', function(data){
+    
+    let content = getMediaStage();
+     
+    io.emit('sendMediaStage',{toSocket:data.fromSocket,stages:content});
+});
+
+// io.on('SendNewFrame', function(){
+//     console.log('Receive SendNewFrame Request');
+//     for(var i=0; i<5; i++){
+//         console.log('Paint after:', 2000*i)
+//         setTimeout(forcePainting(),2000*i);
+//     }
+// });
+
 io.on('redirectCmd', function (data) {
     console.log('recieve redirect request!', data.toUrl)
     self.location = data.toUrl;
@@ -132,6 +150,25 @@ io.on('receiveRoomInfo', function (data) {
     console.log("Receive new room info:", data)
 })
 
+function getMediaStage(){
+    let content = {
+        isCamReady: false,
+        isSlideReady: false
+    };
+    /**
+     * Check media
+     */
+    console.log('Check CAM:', localVideoStream);
+    console.log('Check SLIDE:', localSlideStream);
+
+    if(localVideoStream){
+        content.isCamReady = true;
+    }
+    if(localSlideStream){
+        content.isSlideReady = true;
+    }
+    return content;
+}
 function getNewRoomInfo() {
     io.emit('getRoomInfo', { room: room });
 }
@@ -161,11 +198,14 @@ function findPcIdByPartnerId(partnerId) {
 }
 
 function prepareCAMDevice() {
+    console.log('PrepareCAMDevice')
     localVideo = document.getElementById('local-video');
     navigator.mediaDevices.getUserMedia(qvgaConstraints)
         .then(function (stream) {
             localVideoStream = stream;
             localVideo.srcObject = stream;
+
+            io.emit('hostIsReady',{room:room, stages:getMediaStage()});
         })
         .catch(function (e) {
             alert('getUserMedia() error: ' + e.name);
@@ -176,11 +216,17 @@ function prepareSlideDevice(canvas) {
     try {
         if (canvas) {
             localSlideStream = canvas.captureStream();
-            console.log('Finish set Stream:', localSlideStream)
+            console.log('Finish set Stream:', localSlideStream);
+            io.emit('hostIsReady',{room:room, stages:getMediaStage()});
         }
     } catch (error) {
         alert('getCanvas fail: ' + error.name);
     }
+    setInterval(()=>{
+        let canvas = $('#paper');
+        let ctx = canvas[0].getContext('2d');
+     ctx.drawImage(ctx.canvas, 0, 0);
+    }, 1000);
 }
 
 
@@ -260,3 +306,9 @@ function handleIceCandidate(event, fromSocket, pcId) {
         console.log('End of candidates.');
     }
 }
+// function forcePainting(){
+//     console.log('Start force painting');
+//     let canvas = $('#paper');
+//     let ctx = canvas[0].getContext('2d');
+//     ctx.drawImage(ctx.canvas, 0, 0);
+// }

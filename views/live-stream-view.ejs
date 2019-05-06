@@ -1,26 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="description" content="" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <!-- Title -->
-    <title>Streaming</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <!-- Favicon -->
-    <link rel="icon" href="/img/core-img/favicon.ico" />
+  <!-- Title -->
+  <title>Streaming</title>
 
-    <!-- Core Stylesheet -->
-    <link rel="stylesheet" href="/style.css" />
-    <link rel="stylesheet" href="/css/mystyle.css" />
-    <link rel="stylesheet" href="/css/stream.css" />
-    <!-- Canvas css -->
+  <!-- Favicon -->
+  <link rel="icon" href="/img/core-img/favicon.ico" />
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/css/mystyle.css" />
+  <link rel="stylesheet" href="/css/stream.css" />
+  <!-- Canvas css -->
   <style type="text/css">
     #upload-button {
       width: 150px;
@@ -93,123 +91,144 @@
       text-align: center;
     }
   </style>
-  </head>
+</head>
 
-  <body>
-    <!-- ##### Preloader ##### -->
-    <div id="preloader">
-      <i class="circle-preloader"></i>
-    </div>
+<body onload="laugh_wellcome_modal()">
+  <!-- ##### Preloader ##### -->
+  <div id="preloader">
+    <i class="circle-preloader"></i>
+  </div>
 
-    <div class="m-3 p-4 bg-success"></div>
+  <div class="m-3 p-4 bg-success"></div>
 
-    <!-- ##### About Us Area Start ##### -->
-    <section class="about-us-area section-padding-0">
-      <div id="live-stream" class="container-fluid">
-        <div class="row" style="height: 100vh;">
-          <div class="col-2 pl-1 pr-1">
-            <div class="panel-main-stream card border-success">
-              <div>
-                <div class="list-group">
-                  <div class="list-group-item list-group-item-action p-3">
-                    <img
-                      class="mr-2"
-                      src="/img/stream/user-icon.png"
-                      width="20px"
-                      alt="user-icon"
-                    />
-                    Adam
-                  </div>
-                  <div
-                    class="list-group-item list-group-item-action list-group-item-secondary p-3"
-                  >
-                    <img
-                      class="mr-2"
-                      src="/img/stream/user-icon.png"
-                      width="20px"
-                      alt="user-icon"
-                    />
-                    Linda
-                  </div>
+  <!-- ##### About Us Area Start ##### -->
+  <section class="about-us-area section-padding-0">
+    <div id="live-stream" class="container-fluid">
+      <div class="row" style="height: 100vh;">
+        <div class="col-2 pl-1 pr-1">
+          <div class="panel-main-stream card border-success">
+            <div>
+              <div class="list-group">
+                <div class="list-group-item list-group-item-action p-3">
+                  <img class="mr-2" src="/img/stream/user-icon.png" width="20px" alt="user-icon" />
+                  Adam
                 </div>
-              </div>
-              <div class="panel-main-webcam card border-success">
-                <video id="remote-video" autoplay playinline controls style="width:100%; height:100%">
-              </div>
-            </div>
-          </div>
-          <div class="col-7">
-            <div class="panel-main-stream card border-success">
-  
-              <div id="pdf-main-container">
-                <div id="pdf-contents">
-                  <video id="remote-slide" style="max-height: 500px; min-width: 700px; display: inline;" autoplay playinline controls></video>
+                <div class="list-group-item list-group-item-action list-group-item-secondary p-3">
+                  <img class="mr-2" src="/img/stream/user-icon.png" width="20px" alt="user-icon" />
+                  Linda
                 </div>
               </div>
             </div>
+            <div class="panel-main-webcam card border-success">
+              <video id="remote-video" autoplay playinline controls muted style="width:100%; height:100%">
+            </div>
           </div>
-          <div class="col-3 pl-1 pr-1">
-            <div class="panel-main-chat card border-success border-1 p-2">
-              <div class="panel-body">
-                <ul class="chat">
-                  <li class="left clearfix">
-                    <strong>Adam</strong>
-                    <span>&nbsp;:&nbsp;</span>
-                    <span>Hi !</span>
-                  </li>
-                  <li class="left clearfix">
-                    <strong>Adam</strong>
-                    <span>&nbsp;:&nbsp;</span>
-                    <span>Hi !</span>
-                  </li>
-                  <li class="left clearfix">
-                    <strong>Adam</strong>
-                    <span>&nbsp;:&nbsp;</span>
-                    <span>Hi !</span>
-                  </li>
-                </ul>
+        </div>
+        <div class="col-7">
+          <div class="panel-main-stream card border-success">
+
+            <div id="pdf-main-container">
+              <div id="pdf-contents">
+                <video id="remote-slide" style="max-height: 500px; min-width: 700px; display: inline;" autoplay
+                  playinline muted></video>
               </div>
-              <div class="panel-footer">
-                <div class="input-group">
-                  <input
-                    id="btn-input"
-                    type="text"
-                    class="form-control input-sm"
-                    placeholder="Type your message here..."
-                  />
-                  <span class="input-group-btn">
-                    <button class="btn btn-info" id="btn-chat">
-                      Send
-                    </button>
-                  </span>
-                </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-3 pl-1 pr-1">
+          <div class="panel-main-chat card border-success border-1 p-2">
+            <div class="panel-body">
+              <ul class="chat">
+                <li class="left clearfix">
+                  <strong>Adam</strong>
+                  <span>&nbsp;:&nbsp;</span>
+                  <span>Hi !</span>
+                </li>
+                <li class="left clearfix">
+                  <strong>Adam</strong>
+                  <span>&nbsp;:&nbsp;</span>
+                  <span>Hi !</span>
+                </li>
+                <li class="left clearfix">
+                  <strong>Adam</strong>
+                  <span>&nbsp;:&nbsp;</span>
+                  <span>Hi !</span>
+                </li>
+              </ul>
+            </div>
+            <div class="panel-footer">
+              <div class="input-group">
+                <input id="btn-input" type="text" class="form-control input-sm"
+                  placeholder="Type your message here..." />
+                <span class="input-group-btn">
+                  <button class="btn btn-info" id="btn-chat">
+                    Send
+                  </button>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-    <!-- ##### About Us Area End ##### -->
+    </div>
 
-    <!-- ##### All Javascript Script ##### -->
-    <!-- jQuery-2.2.4 js -->
-    <script src="/js/jquery/jquery-2.2.4.min.js"></script>
-    <!-- Popper js -->
-    <script src="/js/bootstrap/popper.min.js"></script>
-    <!-- Bootstrap js -->
-    <script src="/js/bootstrap/bootstrap.min.js"></script>
-    <!-- All Plugins js -->
-    <script src="/js/plugins/plugins.js"></script>
-    <!-- Active js -->
-    <script src="/js/active.js"></script>
-    <!-- UUID V4-->
-    <script src="/js/uuid.min.js"></script>
-    <!-- Socket io-->
-    <script src="/socket.io/socket.io.js"></script>
-    <!-- Live JS-->
-    <script src="/js/view.js"></script>
-    <!-- <script src="/js/bundle.js"></script> -->
-    <!-- Common JS-->
-    <!-- <script src="/js/common.js"></script> -->
-  </body>
+    <!--Testing autoplay-->
+    <!-- Button trigger modal -->
+    <button id="wellcome_btn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" hidden>
+      Launch demo modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+      aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            ...
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+  <!-- ##### About Us Area End ##### -->
+
+  <!-- ##### All Javascript Script ##### -->
+  <!-- jQuery-2.2.4 js -->
+  <script src="/js/jquery/jquery-2.2.4.min.js"></script>
+  <!-- Popper js -->
+  <script src="/js/bootstrap/popper.min.js"></script>
+  <!-- Bootstrap js -->
+  <script src="/js/bootstrap/bootstrap.min.js"></script>
+  <!-- All Plugins js -->
+  <script src="/js/plugins/plugins.js"></script>
+  <!-- Active js -->
+  <script src="/js/active.js"></script>
+  <!-- UUID V4-->
+  <script src="/js/uuid.min.js"></script>
+  <!-- Socket io-->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Live JS-->
+  <script src="/js/view.js"></script>
+  <!-- <script src="/js/bundle.js"></script> -->
+  <!-- Common JS-->
+  <!-- <script src="/js/common.js"></script> -->
+  <script>
+  function laugh_wellcome_modal(){
+    document.getElementById('wellcome_btn').click();
+    // document.getElementById
+  }
+  </script>
+</body>
+
 </html>

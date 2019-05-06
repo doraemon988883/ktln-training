@@ -32,7 +32,7 @@
     }
 
     #pdf-main-container {
-      margin: 10px auto;
+      margin: 1em;
     }
 
     #pdf-loader {
@@ -71,6 +71,7 @@
     }
 
     #paper {
+      width: 100%;
       border: 1px solid rgba(0, 0, 0, 0.2);
       box-sizing: border-box;
     }
@@ -134,17 +135,22 @@
               <div id="pdf-loader">Loading document ...</div>
               <div id="pdf-contents">
                 <div id="pdf-meta">
+                  
+
+                </div>
+                <canvas id="paper" style="display: inline;"></canvas>
+                <div id="page-loader">Loading page ...</div>
+
+                <div style="width: 14%; margin: 10px auto;">
+                  <!-- <a id="download-image" href="#">Download PNG</a> -->
                   <div id="pdf-buttons">
                     <button id="pdf-prev">Previous</button>
                     <button id="pdf-next">Next</button>
                   </div>
-                  <div id="page-count-container">Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages">
+                  <!-- <div id="page-count-container">Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages">
                     </div>
-                  </div>
+                  </div> -->
                 </div>
-                <canvas id="paper" style="display: inline;"></canvas>
-                <div id="page-loader">Loading page ...</div>
-                <a id="download-image" href="#">Download PNG</a>
               </div>
             </div>
           </div>
@@ -268,7 +274,7 @@
         var scale_required = __CANVAS.width / page.getViewport(1).width
 
         console.log('pdf size:', page.getViewport(1).width, 'canvas size:', __CANVAS.width)
-        console.log('scale_required:',scale_required);
+        console.log('scale_required:', scale_required);
 
         // Get viewport of the page at required scale
         var viewport = page.getViewport(scale_required);
@@ -314,7 +320,7 @@
         return;
       }
 
-      $("#upload-button").hide();
+      // $("#upload-button").hide();
 
       // Send the object url of the pdf
       showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));

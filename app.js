@@ -63,6 +63,8 @@ io.sockets.on('connection', function(socket){
         } else {
           console.log('assign TRUE to isStreamer');
           isStreamer = true;
+
+          // socket.to(data.room).emit('connectToHost',{hostSocketId:socket.id});
         }
       } else {
         isStreamer = false;
@@ -89,6 +91,19 @@ io.sockets.on('connection', function(socket){
 
     }
 
+    socket.on('hostIsReady', function(data){
+      socket.to(data.room).emit('connectToHost',{hostSocketId:socket.id, stages:data.stages});
+    });
+
+    socket.on('requestMediaStage', function(data){
+      socket.to(data.hostSocketId).emit('requestMediaStage',{fromSocket: socket.id})
+    });
+
+    socket.on('sendMediaStage', function(data){
+
+      socket.to(data.toSocket).emit("receivedMediaStage",{fromSocket:socket.id,stages:data.stages})
+    })
+
     socket.on('getRoomInfo', function(data){
       //Require all member in room to re-collect room info
       socket.to(data.room).emit('receiveRoomInfo', socMan[data.room]);
@@ -106,6 +121,10 @@ io.sockets.on('connection', function(socket){
 
       socket.to(receiveSocket).emit('receiveMsg', data);
     })
+
+    // socket.on('RequestNewSlideFrame', function(data){
+    //   socket.to(data.toSocket).emit('SendNewFrame');
+    // });
 
     /**
      * Handle disconnect event
@@ -130,7 +149,7 @@ io.sockets.on('connection', function(socket){
             console.log('socMan after:', socMan);
 
             //Require all member in room to re-collect room info
-            socket.to(id).emit('getRoomInfo');
+            socket.to(id).emit('handleDisconectSocket',{disconnectedSocket:xy});
           }
         }
       }
