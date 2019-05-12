@@ -18,14 +18,16 @@
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="/css/mystyle.css" />
   <link rel="stylesheet" href="/css/stream.css" />
+  <!-- Font Awesome Icon -->
+  <link rel="stylesheet" href="/css/font-awesome.min.css" />
 
   <!-- Canvas css -->
   <style type="text/css">
-    #upload-button {
+    /* #upload-button {
       width: 150px;
       display: block;
       margin: 20px auto;
-    }
+    } */
 
     #file-to-upload {
       display: none;
@@ -127,25 +129,55 @@
           </div>
         </div>
         <div class="col-7">
-          <div class="panel-main-stream card border-success">
-            <button id="upload-button">Select PDF</button>
+          <div class="panel-main-stream border-success">
+            <button id="upload-button" type="button" class="btn btn-default">
+              <i class="fa fa-upload"></i> Select PDF
+            </button>
+            <button id="live-button" type="button" class="btn btn-default">
+              <i class="fa fa-video-camera"></i> Live
+            </button>
+            <button id="stop-live-button" type="button" class="btn btn-default">
+              <i class="fa fa-stop"></i> Stop Live
+            </button>
+            <button id="pencil-button" type="button" class="btn btn-default">
+              <i class="fa fa-pencil"></i> Pencil
+            </button>
+            <button id="highlight-button" type="button" class="btn btn-default">
+              <i class="fa fa-paint-brush"></i> Highlight
+            </button>
+            <button id="undo-button" type="button" class="btn btn-default">
+              <i class="fa fa-history"></i> Undo
+            </button>
+            <button id="clear-button" type="button" class="btn btn-default">
+              <i class="fa fa-eraser"></i> Eraser All
+            </button>
+            <button type="button" class="btn btn-default">
+              <i class="fa fa-search-plus"></i> Zoom
+            </button>
+
             <input type="file" id="file-to-upload" accept="application/pdf" />
 
             <div id="pdf-main-container">
               <div id="pdf-loader">Loading document ...</div>
               <div id="pdf-contents">
                 <div id="pdf-meta">
-                  
+
 
                 </div>
                 <canvas id="paper" style="display: inline;"></canvas>
                 <div id="page-loader">Loading page ...</div>
 
-                <div style="width: 14%; margin: 10px auto;">
+                <!-- <div style="width: 25%; margin: 10px auto;"> -->
+                <div>
                   <!-- <a id="download-image" href="#">Download PNG</a> -->
                   <div id="pdf-buttons">
-                    <button id="pdf-prev">Previous</button>
-                    <button id="pdf-next">Next</button>
+                    <button id="pdf-prev" class="btn btn-default">
+                      <i class="fa fa-angle-left"></i> Previous
+                    </button>
+                    <input type="text" id="pdf-current-page" style="width: 25px" /> / 600
+                    <button id="pdf-next" class="btn btn-default">
+                      Next <i class="fa fa-angle-right"></i>
+                    </button>
                   </div>
                   <!-- <div id="page-count-container">Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages">
                     </div>
@@ -220,6 +252,18 @@
   <script src="/js/draw-script.js"></script>
   <script>
 
+
+    //FIXME Lỗi co giật layout khi undo một số trang. Do hiển thị Loading status
+    const drawType = {
+      PENCIL: 0,
+      HIGHLIGHT: 1,
+      CLEAR: 2
+    }
+
+    var drawMethod = drawType.PENCIL;
+    //Lưu thông tin về draw
+    var points = {};
+
     var __PDF_DOC,
       __CURRENT_PAGE,
       __TOTAL_PAGES,
@@ -227,6 +271,12 @@
       __CANVAS = $('#paper').get(0),
       __CANVAS_CTX = __CANVAS.getContext('2d');
 
+    // var canvas = $('#paper');
+
+    /**
+     * @author Nguyễn Thế Sơn
+     * @description Nạp file PDF vào module pdfjs và hiển thị.
+     */
     function showPDF(pdf_url) {
       $("#pdf-loader").show();
 
@@ -252,7 +302,12 @@
       });;
     }
 
-    function showPage(page_no) {
+    /**
+     * @author Nguyễn Thế Sơn
+     * @description Hiển thị (một) trang PDF
+     */
+    function showPage(page_no, notReDraw) {
+      if(__PAGE_RENDERING_IN_PROGRESS) return Promise.reject("Not finish");
       __PAGE_RENDERING_IN_PROGRESS = 1;
       __CURRENT_PAGE = page_no;
 
@@ -268,7 +323,7 @@
       $("#pdf-current-page").text(page_no);
 
       // Fetch the page
-      __PDF_DOC.getPage(page_no).then(function (page) {
+      return __PDF_DOC.getPage(page_no).then(function (page) {
         // As the canvas is of a fixed width we need to set the scale of the viewport accordingly
         __CANVAS.width = 700;
         var scale_required = __CANVAS.width / page.getViewport(1).width
@@ -287,8 +342,13 @@
           viewport: viewport
         };
 
+
+      //Xóa Canvas và render lại
+      __CANVAS_CTX.globalCompositeOperation = "source-over";
+      __CANVAS_CTX.clearRect(0, 0, __CANVAS.width, __CANVAS.height);
+
         // Render the page contents in the canvas
-        page.render(renderContext).then(function () {
+        return page.render(renderContext).then(function () {
           __PAGE_RENDERING_IN_PROGRESS = 0;
 
           // Re-enable Prev & Next buttons
@@ -302,6 +362,17 @@
           // //@author NTS > Testing purpose.
           // document.querySelector('video#remoteVideo').srcObject = __CANVAS.captureStream()
           // console.log('Finish mapping!')
+
+          //Kiểm tra Page này đã được draw hay chưa?
+          if (!points[page_no]) {
+            console.log('Dữ liệu về Page:', page_no, 'không tồn tại')
+            points[page_no] = [];
+          } else if(!notReDraw) {
+            //TODO ReDraw lại Page với các points được lưu
+            console.log('Có thông tin về Page');
+            reDrawAll();
+          }
+          Promise.resolve("OKE")
         });
       });
     }
@@ -342,6 +413,206 @@
     $("#download-image").on('click', function () {
       $(this).attr('href', __CANVAS.toDataURL()).attr('download', 'page.png');
     });
+
+    $('#live-button').on('click', function () {
+      startStreaming();
+    })
+
+    $('#stop-live-button').on('click', function () {
+      stopStreaming();
+    })
+
+    $('#highlight-button').on('click', function () {
+      console.log('Highlight is ON');
+      drawMethod = drawType.HIGHLIGHT;
+      $('canvas').hover(function () {
+        //TODO Chưa thay đổi Cursor
+        console.log('Canvas Hover');
+        document.getElementById('paper').style.cursor = "url('/icon/paint-brush-solid.svg'), auto";
+      })
+    })
+
+    $('#pencil-button').on('click', function () {
+      drawMethod = drawType.PENCIL;
+    });
+
+    var undoInterval;
+    $('#undo-button').mousedown(function () {
+      undoInterval = setInterval(undoDraw, 50);
+      // undoDraw();
+    }).mouseup(function () {
+      clearInterval(undoInterval);
+    });
+
+    $('#clear-button').on('click', function () {
+      clearAllDraw();
+    })
+
+    /**
+     * @author Nguyễn Thế Sơn
+     * @description Vẽ lại tất cả các draw được lưu trong points.
+     */
+    function reDrawAll() {
+
+      for (let i = 0; i < points[__CURRENT_PAGE].length; i++) {
+          console.log('Loop')
+          let pt = points[__CURRENT_PAGE][i];
+
+          if (pt.drawMethod === drawType.HIGHLIGHT) {
+            __CANVAS_CTX.globalCompositeOperation = "multiply";
+            __CANVAS_CTX.fillStyle = "#ff0";
+            __CANVAS_CTX.fillRect(pt.toX, pt.toY, 20, 20);
+          } else if (pt.drawMethod === drawType.PENCIL) {
+            __CANVAS_CTX.globalCompositeOperation = "source-over";
+            __CANVAS_CTX.moveTo(pt.fromX, pt.fromY);
+            __CANVAS_CTX.lineTo(pt.toX, pt.toY);
+            __CANVAS_CTX.stroke();
+          } else if (pt.drawMethod === drawType.CLEAR) {
+            // showPage(__CURRENT_PAGE);
+          }
+        }
+    }
+
+    /**
+     * @author Nguyễn Thế Sơn
+     * @description Xóa toàn bộ nét vẽ trên trang. Và lưu lại việc này trong points để Undo nếu cần.
+     */
+    function clearAllDraw() {
+      showPage(__CURRENT_PAGE, true);
+      //TODO Delete draw save
+      points[__CURRENT_PAGE].push({
+        drawMethod: drawType.CLEAR
+      })
+    }
+
+    /**
+     * @author Nguyễn Thế Sơn
+     * @description Undo một nét vẽ và vẽ lại Canvas.
+     */
+    function undoDraw() {
+      console.log('UndoDraw is call')
+      points[__CURRENT_PAGE].pop();
+      return showPage(__CURRENT_PAGE).then(function () {
+        Promise.resolve("OKE")
+      })
+    }
+
+    // -------------------------- ZOOM CODE GO HERE -------------------//
+    // trackTransforms(__CANVAS_CTX);
+    // function redraw() {
+		// 		// Clear the entire canvas
+		// 		var p1 = __CANVAS_CTX.transformedPoint(0, 0);
+		// 		var p2 = __CANVAS_CTX.transformedPoint(__CANVAS.width, __CANVAS.height);
+		// 		__CANVAS_CTX.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+		// 		__CANVAS_CTX.drawImage(__CANVAS_CTX.canvas, 200, 50);
+
+		// 	}
+		// 	redraw();
+
+		// 	var lastX = __CANVAS.width / 2, lastY = __CANVAS.height / 2;
+		// 	var dragStart, dragged;
+		// 	__CANVAS.addEventListener('mousedown', function (evt) {
+		// 		document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
+		// 		lastX = evt.offsetX || (evt.pageX - __CANVAS.offsetLeft);
+		// 		lastY = evt.offsetY || (evt.pageY - __CANVAS.offsetTop);
+		// 		dragStart = __CANVAS_CTX.transformedPoint(lastX, lastY);
+		// 		dragged = false;
+		// 	}, false);
+		// 	__CANVAS.addEventListener('mousemove', function (evt) {
+		// 		lastX = evt.offsetX || (evt.pageX - __CANVAS.offsetLeft);
+		// 		lastY = evt.offsetY || (evt.pageY - __CANVAS.offsetTop);
+		// 		dragged = true;
+		// 		if (dragStart) {
+		// 			var pt = __CANVAS_CTX.transformedPoint(lastX, lastY);
+		// 			__CANVAS_CTX.translate(pt.x - dragStart.x, pt.y - dragStart.y);
+		// 			redraw();
+		// 		}
+		// 	}, false);
+		// 	__CANVAS.addEventListener('mouseup', function (evt) {
+		// 		dragStart = null;
+		// 		if (!dragged) zoom(evt.shiftKey ? -1 : 1);
+		// 	}, false);
+
+		// 	var scaleFactor = 1.1;
+		// 	var zoom = function (clicks) {
+		// 		var pt = __CANVAS_CTX.transformedPoint(lastX, lastY);
+		// 		__CANVAS_CTX.translate(pt.x, pt.y);
+		// 		var factor = Math.pow(scaleFactor, clicks);
+		// 		__CANVAS_CTX.scale(factor, factor);
+		// 		__CANVAS_CTX.translate(-pt.x, -pt.y);
+		// 		redraw();
+		// 	}
+
+		// 	var handleScroll = function (evt) {
+		// 		var delta = evt.wheelDelta ? evt.wheelDelta / 40 : evt.detail ? -evt.detail : 0;
+		// 		if (delta) zoom(delta);
+		// 		return evt.preventDefault() && false;
+		// 	};
+		// 	__CANVAS.addEventListener('DOMMouseScroll', handleScroll, false);
+		// 	__CANVAS.addEventListener('mousewheel', handleScroll, false);
+      
+
+
+
+    //   // Adds ctx.getTransform() - returns an SVGMatrix
+		// // Adds ctx.transformedPoint(x,y) - returns an SVGPoint
+		// function trackTransforms(ctx) {
+		// 	var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+		// 	var xform = svg.createSVGMatrix();
+		// 	__CANVAS_CTX.getTransform = function () { return xform; };
+
+		// 	var savedTransforms = [];
+		// 	var save = __CANVAS_CTX.save;
+		// 	__CANVAS_CTX.save = function () {
+		// 		savedTransforms.push(xform.translate(0, 0));
+		// 		return save.call(__CANVAS_CTX);
+		// 	};
+		// 	var restore = __CANVAS_CTX.restore;
+		// 	__CANVAS_CTX.restore = function () {
+		// 		xform = savedTransforms.pop();
+		// 		return restore.call(__CANVAS_CTX);
+		// 	};
+
+		// 	var scale = __CANVAS_CTX.scale;
+		// 	__CANVAS_CTX.scale = function (sx, sy) {
+		// 		xform = xform.scaleNonUniform(sx, sy);
+		// 		return scale.call(__CANVAS_CTX, sx, sy);
+		// 	};
+		// 	var rotate = __CANVAS_CTX.rotate;
+		// 	__CANVAS_CTX.rotate = function (radians) {
+		// 		xform = xform.rotate(radians * 180 / Math.PI);
+		// 		return rotate.call(__CANVAS_CTX, radians);
+		// 	};
+		// 	var translate = __CANVAS_CTX.translate;
+		// 	__CANVAS_CTX.translate = function (dx, dy) {
+		// 		xform = xform.translate(dx, dy);
+		// 		return translate.call(__CANVAS_CTX, dx, dy);
+		// 	};
+		// 	var transform = __CANVAS_CTX.transform;
+		// 	__CANVAS_CTX.transform = function (a, b, c, d, e, f) {
+		// 		var m2 = svg.createSVGMatrix();
+		// 		m2.a = a; m2.b = b; m2.c = c; m2.d = d; m2.e = e; m2.f = f;
+		// 		xform = xform.multiply(m2);
+		// 		return transform.call(__CANVAS_CTX, a, b, c, d, e, f);
+		// 	};
+		// 	var setTransform = __CANVAS_CTX.setTransform;
+		// 	__CANVAS_CTX.setTransform = function (a, b, c, d, e, f) {
+		// 		xform.a = a;
+		// 		xform.b = b;
+		// 		xform.c = c;
+		// 		xform.d = d;
+		// 		xform.e = e;
+		// 		xform.f = f;
+		// 		return setTransform.call(__CANVAS_CTX, a, b, c, d, e, f);
+		// 	};
+		// 	var pt = svg.createSVGPoint();
+		// 	__CANVAS_CTX.transformedPoint = function (x, y) {
+		// 		pt.x = x; pt.y = y;
+		// 		return pt.matrixTransform(xform.inverse());
+		// 	}
+		// }
+// ------- ZOOM CODE END HERE ------ //
 
   </script>
 </body>

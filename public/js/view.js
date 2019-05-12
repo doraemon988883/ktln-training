@@ -89,6 +89,8 @@ io.on('receivedMediaStage', function(data){
     };
 });
 /**
+ * @author Nguyễn Thế Sơn
+ * @description Nhận Socket Messenger. Yêu cầu kết nối lại với Streamer.
  * Kết nối lại với CAM và SLIDE của máy Host
  */
 io.on('connectToHost',function(data){
@@ -122,6 +124,9 @@ io.on('connectToHost',function(data){
     }
 });
 /**
+ * @author Nguyễn Thế Sơn
+ * @description Nhận Messenger từ Partner' Socket để thiết lập kết nối
+ * @param data
  * Tham số truyền vào hàm callback có dạng:
  * data = {
  *  fromSocket: fromSocket,
@@ -163,7 +168,8 @@ io.on('handleDisconectSocket', function(data){
 
 
 /**
- * Tạo RTCConnection đến CAM của Host
+ * @author Nguyễn Thế Sơn
+ * @description Tạo RTCConnection đến CAM của Host
  * @param {*} toSocket 
  */
 function createConnectToCAM(toSocket, pcId){
@@ -187,8 +193,10 @@ function createConnectToCAM(toSocket, pcId){
 }
 
 /**
- * Tạo RTCConnection đến SLIDE của Host
+ * @author Nguyễn Thế Sơn
+ * @description Tạo RTCPeerConnection đến SLIDE của Host
  * @param {*} toSocket 
+ * @param pcId
  */
 function createConnectToSLIDE(toSocket, pcId){
     let slidePC;
@@ -209,6 +217,8 @@ function createConnectToSLIDE(toSocket, pcId){
     );
 }
 /**
+ * @author Nguyễn Thế Sơn
+ * @description Tìm kiếm Socket's ID của Streamer (Giảng viên)
  * @returns socketId
  */
 function findStreamer(){
@@ -220,11 +230,13 @@ function findStreamer(){
     return null;
 }
 
+//TODO Check Func
 function getNewRoomInfo(){
     io.emit('getRoomInfo', {room:room});
 }
 /**
- * 
+ * @author Nguyễn Thế Sơn
+ * @description Gửi Socket đến Server và yêu cầu Forward Request đến Parner's Socket
  * @param {*} toSocket 
  * @param {*} content 
  * @param {*} pcId
@@ -311,7 +323,27 @@ function handleRemoteStreamAdded(event, pcId) {
 function handleRemoteStreamRemoved(event) {
     console.log('Remote stream removed. Event: ', event);
 }
+function handleIceConnectionStateChange(event, pcId){
+    
+    let connectionState = pcContainer[pcId].pc.iceConnectionState;
+    if(connectionState === "disconnected" || connectionState === "closed" ||connectionState === "failed" ){
+        if(pcContainer[pcId].conType === connectType.CAM){
+            //TODO Xử lý khi CAM mất kết nối
+            console.log('CAM is Disconnect');
+        } else if(pcContainer[pcId].conType === connectType.SLIDE){
+            //TODO Xử lý khi SLIDE mất kết nối
+            console.log('SLIDE is Disconnect');
 
+        }
+    }
+}
+/**
+ * @author Nguyễn Thế Sơn
+ * @description Tạo các RTCPeerConnection để kết nối với Peer của Partner
+ * @param {*} pcId 
+ * @param {*} toSocket 
+ * @param {*} conType 
+ */
 function createConnector(pcId, toSocket, conType){
     try {
 
@@ -329,6 +361,9 @@ function createConnector(pcId, toSocket, conType){
                 pcContainer[pcId].pc.onaddstream = function(event){
                     handleRemoteStreamAdded(event, pcId)
                 };
+                pcContainer[pcId].pc.oniceconnectionstatechange = function(event){
+                    handleIceConnectionStateChange(event, pcId);
+                }
                 pcContainer[pcId].pc.onremovestream = handleRemoteStreamRemoved;
                
                 break;
@@ -345,6 +380,9 @@ function createConnector(pcId, toSocket, conType){
                 pcContainer[pcId].pc.onaddstream = function(event){
                     handleRemoteStreamAdded(event, pcId)
                 };
+                pcContainer[pcId].pc.oniceconnectionstatechange = function(event){
+                    handleIceConnectionStateChange(event, pcId);
+                }
                 pcContainer[pcId].pc.onremovestream = handleRemoteStreamRemoved;
                 break;
             case connectType.MIC:

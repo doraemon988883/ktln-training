@@ -28,6 +28,8 @@ $(function(){
     var prev = {};
 
     canvas.on('mousedown',function(e){
+        console.log('MOuse is on Page:', __CURRENT_PAGE);
+
         console.log('Mousedown event call:', e)
         e.preventDefault();
         drawing = true;
@@ -77,9 +79,34 @@ $(function(){
     },10000);
 
     function drawLine(fromx, fromy, tox, toy){
-        ctx.moveTo(fromx, fromy);
-        ctx.lineTo(tox, toy);
-        ctx.stroke();
+        // ctx.moveTo(fromx, fromy);
+        // ctx.lineTo(tox, toy);
+        // ctx.stroke();
+        
+        // ctx.fillStyle = "#ff0";
+        // ctx.fillRect(tox, toy, 20, 20);
+
+        if(drawMethod === drawType.PENCIL){
+            ctx.globalCompositeOperation = "source-over";
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+        } else if(drawMethod === drawType.HIGHLIGHT){
+            ctx.globalCompositeOperation = "multiply";
+            ctx.fillStyle = "#ff0";
+            ctx.fillRect(tox, toy, 20, 20);
+        }
+
+        //Lưu thông tin Draw
+        
+        points[__CURRENT_PAGE].push({
+            fromX: fromx,
+            fromY: fromy,
+            toX: tox,
+            toY: toy,
+            color: "red",
+            drawMethod: drawMethod
+        });
     }
 
 });
