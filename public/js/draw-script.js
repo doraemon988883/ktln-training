@@ -86,15 +86,42 @@ $(function(){
         // ctx.fillStyle = "#ff0";
         // ctx.fillRect(tox, toy, 20, 20);
 
+        //Apply Difference between PDF and Canvas
+        // console.log("DiffSize:", difSizeWidth, difSizeHeight)
+        // fromx = fromx*Xscale;
+        // fromy = fromy*Yscale;
+        // tox = tox*Xscale;
+        // toy = toy*Yscale;
+
         if(drawMethod === drawType.PENCIL){
+            // ctx.save();
+            // ctx.translate(panX,panY);
+            // ctx.scale(scaleFactorX,scaleFactorY);
+            // ctx.beginPath();
+
             ctx.globalCompositeOperation = "source-over";
             ctx.moveTo(fromx, fromy);
             ctx.lineTo(tox, toy);
+            // ctx.closePath();
             ctx.stroke();
+
+            // ctx.restore();
         } else if(drawMethod === drawType.HIGHLIGHT){
+
+            // ctx.save();
+            // ctx.translate(panX,panY);
+            // ctx.scale(scaleFactorX,scaleFactorY);
+            // ctx.beginPath();
+
+            console.log("Draw Highlight POS:", tox, toy);
             ctx.globalCompositeOperation = "multiply";
             ctx.fillStyle = "#ff0";
+            // ctx.closePath();
+
             ctx.fillRect(tox, toy, 20, 20);
+
+            // ctx.restore();
+
         }
 
         //Lưu thông tin Draw
